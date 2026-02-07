@@ -42,7 +42,6 @@ Add a shell hook to your `.zshrc` or `.bashrc` to get notified of issues:
 
     --debug                Enable debug logging.
     --brew-timeout         Maximum time to allow brew commands to run (default: 15m).
-    --skip-connectivity-check  Skip the internet connectivity check before syncing.
 
 ## Usage
 
@@ -76,7 +75,7 @@ needed.
 
 With `--debug`, prints each directory as it is removed.
 
-### sync [--dry-run] [--brew-min-interval MINUTES]
+### sync [--dry-run] [--brew-min-interval MINUTES] [--connectivity-check]
 
 Pull all configured sources, then run `brew bundle` for each.
 
@@ -91,6 +90,10 @@ Pull all configured sources, then run `brew bundle` for each.
 changed since the last successful sync within the given number of minutes.
 Git pull always runs regardless. Changed Brewfiles are always processed
 immediately, even within the interval window.
+
+`--connectivity-check` checks for internet connectivity before syncing and
+skips if offline. Enabled automatically by `highlife install` for background
+runs.
 
 ### status [--quiet]
 

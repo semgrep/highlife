@@ -57,6 +57,7 @@ func Install(opts InstallOptions) error {
 		Label: label,
 		ProgramArguments: []string{
 			exe, "sync",
+			"--connectivity-check",
 			"--brew-min-interval", fmt.Sprintf("%d", opts.BrewMinIntervalMins),
 		},
 		StartInterval:     opts.IntervalMinutes * 60,

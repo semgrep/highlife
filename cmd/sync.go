@@ -22,8 +22,9 @@ const (
 )
 
 type SyncCmd struct {
-	DryRun bool `help:"Print commands without running them." name:"dry-run" default:"false"`
-	BrewMinInterval int `help:"Skip brew bundle for unchanged Brewfiles if last successful sync was less than this many minutes ago." default:"0" name:"brew-min-interval"`
+	DryRun            bool `help:"Print commands without running them." name:"dry-run" default:"false"`
+	BrewMinInterval   int  `help:"Skip brew bundle for unchanged Brewfiles if last successful sync was less than this many minutes ago." default:"0" name:"brew-min-interval"`
+	ConnectivityCheck bool `help:"Check for internet connectivity before syncing." default:"false" name:"connectivity-check"`
 }
 
 func (c *SyncCmd) Run(g *Globals) error {
@@ -41,7 +42,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 	delayActive := c.BrewMinInterval > 0 && !prev.LastSuccessfulSync.IsZero() &&
 		time.Since(prev.LastSuccessfulSync) < time.Duration(c.BrewMinInterval)*time.Minute
 
-	if !g.SkipConnectivityCheck {
+	if c.ConnectivityCheck {
 		log.Debug("connectivity check", "addr", connectivityAddr, "timeout", connectivityTimeout)
 		conn, err := net.DialTimeout("tcp", connectivityAddr, connectivityTimeout)
 		if err != nil {

@@ -13,7 +13,7 @@ type CLI struct {
 	Remove    cmd.RemoveCmd    `cmd:"" help:"Remove a Brewfile source."`
 	List      cmd.ListCmd      `cmd:"" help:"List Brewfile sources."`
 	Clean     cmd.CleanCmd     `cmd:"" help:"Remove all cached repo clones."`
-	Sync      cmd.SyncCmd      `cmd:"" help:"Sync all sources (clone/pull + brew bundle)."`
+	Sync      cmd.SyncCmd      `cmd:"" help:"Sync all sources (clone/pull + brew bundle)." default:"withargs"`
 	Status    cmd.StatusCmd    `cmd:"" help:"Show sync status."`
 	Install   cmd.InstallCmd   `cmd:"" help:"Install the launchd service for automatic syncing."`
 	Uninstall cmd.UninstallCmd `cmd:"" help:"Uninstall the launchd service."`
