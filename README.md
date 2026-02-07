@@ -8,6 +8,13 @@ background launchd service.
 
 ## Install
 
+Via Homebrew:
+
+    brew tap semgrep/highlife https://github.com/semgrep/highlife
+    brew install semgrep/highlife/highlife
+
+Or from source:
+
     go install github.com/semgrep/highlife@latest
 
 ## Quick start
