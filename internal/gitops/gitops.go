@@ -1,7 +1,9 @@
 package gitops
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,17 +16,17 @@ import (
 // EnsureRepo clones the repo if it doesn't exist, or pulls latest if it does.
 // All given paths are checked out via sparse checkout.
 // Returns the local directory path.
-func EnsureRepo(url string, paths_ []string) (string, error) {
+func EnsureRepo(url string, filePaths []string) (string, error) {
 	dir := paths.RepoDir(url)
 
-	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		if err := clone(url, dir, paths_); err != nil {
+	if _, err := os.Stat(dir); errors.Is(err, fs.ErrNotExist) {
+		if err := clone(url, dir, filePaths); err != nil {
 			return "", fmt.Errorf("git clone %s: %w", url, err)
 		}
 		return dir, nil
 	}
 
-	if err := pull(dir, paths_); err != nil {
+	if err := pull(dir, filePaths); err != nil {
 		return "", fmt.Errorf("git pull in %s: %w", dir, err)
 	}
 	return dir, nil
@@ -37,28 +39,28 @@ func runCmd(cmd *exec.Cmd) error {
 	return cmd.Run()
 }
 
-func sparseCheckoutArgs(dir string, paths_ []string) []string {
+func sparseCheckoutArgs(dir string, filePaths []string) []string {
 	args := []string{"-C", dir, "sparse-checkout", "set", "--no-cone"}
-	for _, p := range paths_ {
+	for _, p := range filePaths {
 		args = append(args, "/"+p)
 	}
 	return args
 }
 
-func clone(url, dir string, paths_ []string) error {
+func clone(url, dir string, filePaths []string) error {
 	if err := runCmd(exec.Command("git", "clone", "--depth=1", "--filter=blob:none", "--no-checkout", "--no-recurse-submodules", url, dir)); err != nil {
 		return err
 	}
 
-	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, paths_)...)); err != nil {
+	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, filePaths)...)); err != nil {
 		return err
 	}
 
 	return runCmd(exec.Command("git", "-C", dir, "checkout", "--no-recurse-submodules"))
 }
 
-func pull(dir string, paths_ []string) error {
-	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, paths_)...)); err != nil {
+func pull(dir string, filePaths []string) error {
+	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, filePaths)...)); err != nil {
 		return err
 	}
 
@@ -69,7 +71,7 @@ func pull(dir string, paths_ []string) error {
 func RemoveAllRepos() ([]string, error) {
 	dir := paths.ReposDir()
 	entries, err := os.ReadDir(dir)
-	if os.IsNotExist(err) {
+	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
 	if err != nil {

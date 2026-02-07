@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/semgrep/highlife/internal/state"
@@ -25,12 +26,9 @@ func (c *StatusCmd) Run(g *Globals) error {
 		return nil
 	}
 
-	var anyFailed bool
-	for _, r := range st.Results {
-		if !r.Success {
-			anyFailed = true
-		}
-	}
+	anyFailed := slices.ContainsFunc(st.Results, func(r state.SourceResult) bool {
+		return !r.Success
+	})
 
 	if !c.Quiet {
 		fmt.Printf("last sync:            %s (%s ago)\n", st.LastSync.Format("2006-01-02 15:04:05"), timeAgo(st.LastSync))

@@ -1,7 +1,9 @@
 package launchd
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -103,7 +105,7 @@ func Uninstall() error {
 	cmd.Stderr = os.Stderr
 	_ = cmd.Run() // ignore error if not loaded
 
-	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
+	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove plist: %w", err)
 	}
 

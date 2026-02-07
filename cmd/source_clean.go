@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/charmbracelet/log"
+
 	"github.com/semgrep/highlife/internal/gitops"
 )
 
@@ -14,10 +16,8 @@ func (c *SourceCleanCmd) Run(g *Globals) error {
 		return fmt.Errorf("clean repos: %w", err)
 	}
 
-	if g.Debug {
-		for _, p := range removed {
-			fmt.Println(p)
-		}
+	for _, p := range removed {
+		log.Debug("removed repo", "path", p)
 	}
 
 	fmt.Printf("cleaned %d cached repo(s)\n", len(removed))

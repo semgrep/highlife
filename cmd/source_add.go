@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"github.com/semgrep/highlife/internal/config"
 	"github.com/semgrep/highlife/internal/gitops"
@@ -28,7 +29,7 @@ func (c *SourceAddCmd) Run(g *Globals) error {
 
 	// Eagerly clone/pull to verify the files exist before saving.
 	// Include any existing paths for this URL so sparse checkout covers everything.
-	allPaths := append(cfg.PathsForURL(c.URL), c.Paths...)
+	allPaths := slices.Concat(cfg.PathsForURL(c.URL), c.Paths)
 	dir, err := gitops.EnsureRepo(c.URL, allPaths)
 	if err != nil {
 		return fmt.Errorf("fetch repo: %w", err)

@@ -18,17 +18,16 @@ type SyncCmd struct {
 }
 
 func (c *SyncCmd) Run(g *Globals) error {
-	if c.Delay > 0 {
-		st, err := state.Load()
-		if err != nil {
-			return fmt.Errorf("load state: %w", err)
-		}
-		if !st.LastSuccessfulSync.IsZero() {
-			elapsed := time.Since(st.LastSuccessfulSync)
-			if elapsed < time.Duration(c.Delay)*time.Minute {
-				log.Info("skipping sync", "last_successful_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
-				return nil
-			}
+	prev, err := state.Load()
+	if err != nil {
+		return fmt.Errorf("load state: %w", err)
+	}
+
+	if c.Delay > 0 && !prev.LastSuccessfulSync.IsZero() {
+		elapsed := time.Since(prev.LastSuccessfulSync)
+		if elapsed < time.Duration(c.Delay)*time.Minute {
+			log.Info("skipping sync", "last_successful_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
+			return nil
 		}
 	}
 
@@ -97,14 +96,9 @@ func (c *SyncCmd) Run(g *Globals) error {
 
 	now := time.Now()
 	st := &state.State{
-		LastSync: now,
-		Results:  results,
-	}
-
-	// Preserve previous last successful sync; update it if everything passed.
-	prev, err := state.Load()
-	if err == nil {
-		st.LastSuccessfulSync = prev.LastSuccessfulSync
+		LastSync:           now,
+		LastSuccessfulSync: prev.LastSuccessfulSync,
+		Results:            results,
 	}
 	if !anyFailed {
 		st.LastSuccessfulSync = now

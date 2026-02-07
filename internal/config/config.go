@@ -5,7 +5,6 @@ import (
 	"errors"
 	"io/fs"
 	"os"
-	"path/filepath"
 
 	"github.com/semgrep/highlife/internal/paths"
 )
@@ -113,14 +112,5 @@ func (c *Config) PathsForURL(url string) []string {
 
 // URLStillReferenced returns true if any remaining source uses this URL.
 func (c *Config) URLStillReferenced(url string) bool {
-	for _, s := range c.Sources {
-		if s.URL == url {
-			return true
-		}
-	}
-	return false
-}
-
-func DefaultPath() string {
-	return filepath.Clean("Brewfile")
+	return len(c.PathsForURL(url)) > 0
 }

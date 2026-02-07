@@ -21,7 +21,7 @@ type SourceResult struct {
 
 type State struct {
 	LastSync           time.Time      `json:"last_sync"`
-	LastSuccessfulSync time.Time      `json:"last_successful_sync,omitempty"`
+	LastSuccessfulSync time.Time      `json:"last_successful_sync,omitzero"`
 	Results            []SourceResult `json:"results"`
 }
 
