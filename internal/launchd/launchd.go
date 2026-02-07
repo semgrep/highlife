@@ -22,14 +22,11 @@ var plistTemplate = template.Must(template.New("plist").Parse(`<?xml version="1.
     <array>
         <string>{{ .Executable }}</string>
         <string>sync</string>
+        <string>--delay</string>
+        <string>{{ .Delay }}</string>
     </array>
-    <key>StartCalendarInterval</key>
-    <dict>
-        <key>Hour</key>
-        <integer>9</integer>
-        <key>Minute</key>
-        <integer>0</integer>
-    </dict>
+    <key>StartInterval</key>
+    <integer>{{ .Interval }}</integer>
     <key>RunAtLoad</key>
     <true/>
     <key>StandardOutPath</key>
@@ -49,9 +46,16 @@ type plistData struct {
 	Label      string
 	Executable string
 	LogFile    string
+	Interval   int
+	Delay      int
 }
 
-func Install() error {
+type InstallOptions struct {
+	IntervalMinutes int
+	DelayMinutes    int
+}
+
+func Install(opts InstallOptions) error {
 	exe, err := os.Executable()
 	if err != nil {
 		return fmt.Errorf("resolve executable path: %w", err)
@@ -61,6 +65,8 @@ func Install() error {
 		Label:      label,
 		Executable: exe,
 		LogFile:    paths.LogFile(),
+		Interval:   opts.IntervalMinutes * 60,
+		Delay:      opts.DelayMinutes,
 	}
 
 	dir := filepath.Dir(plistPath())

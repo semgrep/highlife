@@ -17,11 +17,26 @@ import (
 type SyncCmd struct {
 	Debug  bool `help:"Print commands before running them." default:"false"`
 	DryRun bool `help:"Print commands without running them." name:"dry-run" default:"false"`
+	Delay  int  `help:"Skip sync if last successful sync was less than this many minutes ago." default:"0"`
 }
 
 func (c *SyncCmd) Run() error {
 	if term.IsTerminal(int(os.Stderr.Fd())) {
 		log.SetOutput(os.Stderr)
+	}
+
+	if c.Delay > 0 {
+		st, err := state.Load()
+		if err != nil {
+			return fmt.Errorf("load state: %w", err)
+		}
+		if !st.LastSync.IsZero() && allSucceeded(st.Results) {
+			elapsed := time.Since(st.LastSync)
+			if elapsed < time.Duration(c.Delay)*time.Minute {
+				log.Printf("last successful sync was %s ago, skipping (delay=%dm)", elapsed.Round(time.Second), c.Delay)
+				return nil
+			}
+		}
 	}
 
 	cfg, err := config.Load()
@@ -84,4 +99,13 @@ func (c *SyncCmd) Run() error {
 		return fmt.Errorf("one or more sources failed to sync")
 	}
 	return nil
+}
+
+func allSucceeded(results []state.SourceResult) bool {
+	for _, r := range results {
+		if !r.Success {
+			return false
+		}
+	}
+	return len(results) > 0
 }
