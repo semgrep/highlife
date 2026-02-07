@@ -15,9 +15,15 @@ import (
 	"github.com/semgrep/highlife/internal/state"
 )
 
+const (
+	connectivityAddr    = "1.1.1.1:443"
+	connectivityTimeout = 2 * time.Second
+	maxErrorLength      = 1024
+)
+
 type SyncCmd struct {
 	DryRun bool `help:"Print commands without running them." name:"dry-run" default:"false"`
-	Delay  int  `help:"Skip sync if last successful sync was less than this many minutes ago." default:"0"`
+	BrewMinInterval int `help:"Skip brew bundle for unchanged Brewfiles if last successful sync was less than this many minutes ago." default:"0" name:"brew-min-interval"`
 }
 
 func (c *SyncCmd) Run(g *Globals) error {
@@ -32,17 +38,12 @@ func (c *SyncCmd) Run(g *Globals) error {
 		return fmt.Errorf("load state: %w", err)
 	}
 
-	if c.Delay > 0 && !prev.LastSuccessfulSync.IsZero() {
-		elapsed := time.Since(prev.LastSuccessfulSync)
-		if elapsed < time.Duration(c.Delay)*time.Minute {
-			log.Info("skipping sync", "last_successful_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
-			return nil
-		}
-	}
+	delayActive := c.BrewMinInterval > 0 && !prev.LastSuccessfulSync.IsZero() &&
+		time.Since(prev.LastSuccessfulSync) < time.Duration(c.BrewMinInterval)*time.Minute
 
 	if !g.SkipConnectivityCheck {
-		log.Debug("connectivity check", "addr", "1.1.1.1:443", "timeout", "2s")
-		conn, err := net.DialTimeout("tcp", "1.1.1.1:443", 2*time.Second)
+		log.Debug("connectivity check", "addr", connectivityAddr, "timeout", connectivityTimeout)
+		conn, err := net.DialTimeout("tcp", connectivityAddr, connectivityTimeout)
 		if err != nil {
 			log.Info("no internet connectivity, skipping sync")
 			return nil
@@ -64,15 +65,23 @@ func (c *SyncCmd) Run(g *Globals) error {
 	// Clone/pull each unique URL once with all its paths for sparse checkout.
 	repoDirs := map[string]string{}
 	repoErrors := map[string]error{}
+	repoHashes := make(map[string]string)
 	for _, url := range cfg.SourceURLs() {
-		paths := cfg.PathsForURL(url)
-		log.Info("fetching repo", "url", url, "paths", len(paths))
-		dir, err := gitops.EnsureRepo(url, paths)
+		filePaths := cfg.PathsForURL(url)
+		log.Info("fetching repo", "url", url, "paths", len(filePaths))
+		dir, err := gitops.EnsureRepo(url, filePaths)
 		if err != nil {
 			repoErrors[url] = err
 			log.Error("fetch failed", "url", url, "err", err)
+			continue
+		}
+		repoDirs[url] = dir
+
+		hash, err := gitops.FileHash(dir, filePaths)
+		if err != nil {
+			log.Warn("file hash failed, will not skip", "url", url, "err", err)
 		} else {
-			repoDirs[url] = dir
+			repoHashes[url] = hash
 		}
 	}
 
@@ -89,10 +98,19 @@ func (c *SyncCmd) Run(g *Globals) error {
 
 		if err, ok := repoErrors[src.URL]; ok {
 			result.Success = false
-			result.Error = state.TruncateError(err.Error(), 1024)
+			result.Error = state.TruncateError(err.Error(), maxErrorLength)
 			result.Duration = time.Since(start)
 			results = append(results, result)
 			anyFailed = true
+			continue
+		}
+
+		// Skip brew bundle if delay is active and the repo's files haven't changed.
+		if hash, ok := repoHashes[src.URL]; ok && delayActive && hash == prev.FileHashes[src.URL] {
+			log.Info("skipping brew bundle (unchanged)", "url", src.URL, "path", src.Path)
+			result.Success = true
+			result.Duration = time.Since(start)
+			results = append(results, result)
 			continue
 		}
 
@@ -102,7 +120,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 			Timeout: g.BrewTimeout,
 		}); err != nil {
 			result.Success = false
-			result.Error = state.TruncateError(err.Error(), 1024)
+			result.Error = state.TruncateError(err.Error(), maxErrorLength)
 			log.Error("brew bundle failed", "url", src.URL, "path", src.Path, "err", err)
 			anyFailed = true
 		} else {
@@ -119,6 +137,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 		LastSync:           now,
 		LastSuccessfulSync: prev.LastSuccessfulSync,
 		Results:            results,
+		FileHashes:         repoHashes,
 	}
 	if !anyFailed {
 		st.LastSuccessfulSync = now

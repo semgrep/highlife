@@ -23,10 +23,19 @@ Run a sync:
 That will shallow-clone the repository (if not already cached), check out
 only the requested path, and run `brew bundle --file=<path>`.
 
+Set up automatic syncing in the background:
+
+    highlife install
+
+Add a shell hook to your `.zshrc` or `.bashrc` to get notified of issues:
+
+    highlife shellhook
+
 ## Global flags
 
-    --debug          Enable debug logging.
-    --brew-timeout   Maximum time to allow brew commands to run (default: 15m).
+    --debug                Enable debug logging.
+    --brew-timeout         Maximum time to allow brew commands to run (default: 15m).
+    --skip-connectivity-check  Skip the internet connectivity check before syncing.
 
 ## Usage
 
@@ -60,19 +69,21 @@ needed.
 
 With `--debug`, prints each directory as it is removed.
 
-### sync [--dry-run] [--delay MINUTES]
+### sync [--dry-run] [--brew-min-interval MINUTES]
 
-Clone or pull all configured sources, then run `brew bundle` for each.
+Pull all configured sources, then run `brew bundle` for each.
 
     highlife sync
     highlife sync --debug
     highlife sync --dry-run
-    highlife sync --delay 1440
+    highlife sync --brew-min-interval 1440
 
 `--dry-run` skips running `brew bundle`.
-`--delay` skips the sync entirely if the last successful sync was less than
-the given number of minutes ago. Useful for the launchd service to avoid
-redundant runs.
+
+`--brew-min-interval` skips `brew bundle` for Brewfiles that have not
+changed since the last successful sync within the given number of minutes.
+Git pull always runs regardless. Changed Brewfiles are always processed
+immediately, even within the interval window.
 
 ### status [--quiet]
 
@@ -84,16 +95,34 @@ and per-source duration.
 With `--quiet`, only failed sources are printed and the command exits
 silently on success. The exit code is non-zero if any source failed.
 
-### install [--interval MINUTES] [--delay MINUTES]
+### shellhook [--days-since-last-run DAYS] [--days-since-last-success DAYS]
+
+Print a warning if the last sync had issues. Designed to be called from
+`.zshrc` or `.bashrc`. Always exits zero so terminal startup is not
+affected.
+
+    highlife shellhook
+
+Checks, in priority order:
+
+1. Last sync had failures — warns and suggests `highlife status`.
+2. No sync attempted in `--days-since-last-run` days (default: 7) — warns.
+3. No successful sync in `--days-since-last-success` days (default: 14) — warns.
+
+Warnings are colorized when stdout is a terminal, plain text otherwise.
+
+### install [--interval MINUTES] [--brew-min-interval MINUTES]
 
 Install a launchd user agent that runs `highlife sync` periodically.
 
     highlife install
-    highlife install --interval 60 --delay 1440
+    highlife install --interval 60 --brew-min-interval 1440
 
 `--interval` controls how often launchd triggers a sync (default: 30
-minutes). `--delay` is passed to `sync --delay` to skip redundant runs
-(default: 1440 minutes / 24 hours). The agent also runs once at load.
+minutes). `--brew-min-interval` is passed to `sync --brew-min-interval`
+to skip redundant `brew bundle` runs (default: 1440 minutes / 24 hours).
+
+With `--run-at-load`, the agent also runs once at load (e.g. at login).
 
 The plist is written to `~/Library/LaunchAgents/com.semgrep.highlife.sync.plist`.
 
@@ -108,14 +137,15 @@ Unload and remove the launchd agent.
 | Path | Purpose |
 |------|---------|
 | `~/.config/highlife/config.json` | Source list |
-| `~/.local/state/highlife/state.json` | Last sync results |
+| `~/.local/state/highlife/state.json` | Last sync results and file hashes |
 | `~/.local/state/highlife/repos/` | Cached shallow clones |
 | `~/.local/state/highlife/highlife.log` | Log output from the launchd service |
+| `~/.local/state/highlife/highlife.lock` | File lock to prevent concurrent syncs |
 
 Paths respect `XDG_CONFIG_HOME` and `XDG_STATE_HOME` if set.
 
 ## Platform support
 
-`sync`, `add`, `remove`, `list`, `status`, and `clean` work on any platform
-with Git and Homebrew. The `install` and `uninstall` commands are macOS-only
-(launchd).
+`sync`, `add`, `remove`, `list`, `status`, `clean`, and `shellhook` work on
+any platform with Git and Homebrew. The `install` and `uninstall` commands
+are macOS-only (launchd).

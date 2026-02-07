@@ -17,6 +17,7 @@ type CLI struct {
 	Status    cmd.StatusCmd    `cmd:"" help:"Show sync status."`
 	Install   cmd.InstallCmd   `cmd:"" help:"Install the launchd service for automatic syncing."`
 	Uninstall cmd.UninstallCmd `cmd:"" help:"Uninstall the launchd service."`
+	ShellHook cmd.ShellHookCmd `cmd:"" help:"Shell startup hook — warns about sync issues." name:"shellhook"`
 }
 
 func main() {

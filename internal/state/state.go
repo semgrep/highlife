@@ -20,9 +20,10 @@ type SourceResult struct {
 }
 
 type State struct {
-	LastSync           time.Time      `json:"last_sync"`
-	LastSuccessfulSync time.Time      `json:"last_successful_sync,omitzero"`
-	Results            []SourceResult `json:"results"`
+	LastSync           time.Time         `json:"last_sync"`
+	LastSuccessfulSync time.Time         `json:"last_successful_sync,omitzero"`
+	Results            []SourceResult    `json:"results"`
+	FileHashes         map[string]string `json:"file_hashes,omitempty"`
 }
 
 func Load() (*State, error) {

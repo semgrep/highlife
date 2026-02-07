@@ -25,8 +25,8 @@ var plistTemplate = template.Must(template.New("plist").Parse(`<?xml version="1.
     <array>
         <string>{{ .Executable }}</string>
         <string>sync</string>
-        <string>--delay</string>
-        <string>{{ .Delay }}</string>
+        <string>--brew-min-interval</string>
+        <string>{{ .BrewMinInterval }}</string>
     </array>
     <key>StartInterval</key>
     <integer>{{ .Interval }}</integer>
@@ -46,18 +46,18 @@ func plistPath() string {
 }
 
 type plistData struct {
-	Label      string
-	Executable string
-	LogFile    string
-	Interval   int
-	Delay      int
-	RunAtLoad  string
+	Label           string
+	Executable      string
+	LogFile         string
+	Interval        int
+	BrewMinInterval int
+	RunAtLoad       string
 }
 
 type InstallOptions struct {
-	IntervalMinutes int
-	DelayMinutes    int
-	RunAtLoad       bool
+	IntervalMinutes     int
+	BrewMinIntervalMins int
+	RunAtLoad           bool
 }
 
 func Install(opts InstallOptions) error {
@@ -76,7 +76,7 @@ func Install(opts InstallOptions) error {
 		Executable: exe,
 		LogFile:    paths.LogFile(),
 		Interval:   opts.IntervalMinutes * 60,
-		Delay:      opts.DelayMinutes,
+		BrewMinInterval: opts.BrewMinIntervalMins,
 		RunAtLoad:  runAtLoad,
 	}
 

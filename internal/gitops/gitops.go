@@ -1,11 +1,15 @@
 package gitops
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
+
+	"github.com/charmbracelet/log"
 
 	"github.com/semgrep/highlife/internal/executil"
 	"github.com/semgrep/highlife/internal/paths"
@@ -56,6 +60,21 @@ func pull(dir string, filePaths []string) error {
 	}
 
 	return executil.Run("git", "-C", dir, "pull", "--no-recurse-submodules", "--ff-only")
+}
+
+// FileHash returns a hex-encoded SHA-256 of the `git ls-files -s` output for the
+// given paths within a repo directory. This captures git's own blob hashes plus
+// file modes, so any content or metadata change produces a different hash.
+func FileHash(dir string, filePaths []string) (string, error) {
+	args := []string{"-C", dir, "ls-files", "-s"}
+	args = append(args, filePaths...)
+	cmd := exec.Command("git", args...)
+	log.Debug("exec", "cmd", cmd.String())
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git ls-files -s: %w", err)
+	}
+	return fmt.Sprintf("%x", sha256.Sum256(out)), nil
 }
 
 // RemoveAllRepos deletes all cached repo directories and returns the paths removed.
