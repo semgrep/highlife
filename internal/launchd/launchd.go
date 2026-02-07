@@ -13,7 +13,7 @@ import (
 	"github.com/semgrep/highlife/internal/paths"
 )
 
-const label = "com.highlife.sync"
+const label = "com.semgre.highlife.sync"
 
 var plistTemplate = template.Must(template.New("plist").Parse(`<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

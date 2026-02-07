@@ -95,7 +95,7 @@ Install a launchd user agent that runs `highlife sync` periodically.
 minutes). `--delay` is passed to `sync --delay` to skip redundant runs
 (default: 1440 minutes / 24 hours). The agent also runs once at load.
 
-The plist is written to `~/Library/LaunchAgents/com.highlife.sync.plist`.
+The plist is written to `~/Library/LaunchAgents/com.semgrep.highlife.sync.plist`.
 
 ### uninstall
 
