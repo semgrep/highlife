@@ -8,7 +8,9 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/internal/config"
+	"github.com/semgrep/highlife/internal/flock"
 	"github.com/semgrep/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/paths"
 )
 
 type AddCmd struct {
@@ -17,6 +19,12 @@ type AddCmd struct {
 }
 
 func (c *AddCmd) Run(g *Globals) error {
+	lf, err := flock.Acquire(paths.LockFile())
+	if err != nil {
+		return err
+	}
+	defer func() { _ = flock.Release(lf) }()
+
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)

@@ -41,6 +41,10 @@ func ReposDir() string {
 	return filepath.Join(StateDir(), "repos")
 }
 
+func LockFile() string {
+	return filepath.Join(StateDir(), "highlife.lock")
+}
+
 func RepoDir(gitURL string) string {
 	h := sha256.Sum256([]byte(gitURL))
 	return filepath.Join(ReposDir(), fmt.Sprintf("%x", h[:6]))

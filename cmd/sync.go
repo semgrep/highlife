@@ -8,7 +8,9 @@ import (
 
 	"github.com/semgrep/highlife/internal/brewbundle"
 	"github.com/semgrep/highlife/internal/config"
+	"github.com/semgrep/highlife/internal/flock"
 	"github.com/semgrep/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/paths"
 	"github.com/semgrep/highlife/internal/state"
 )
 
@@ -18,6 +20,12 @@ type SyncCmd struct {
 }
 
 func (c *SyncCmd) Run(g *Globals) error {
+	lf, err := flock.Acquire(paths.LockFile())
+	if err != nil {
+		return err
+	}
+	defer func() { _ = flock.Release(lf) }()
+
 	prev, err := state.Load()
 	if err != nil {
 		return fmt.Errorf("load state: %w", err)

@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"os"
-
 	"github.com/alecthomas/kong"
 	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/cmd"
@@ -32,7 +29,6 @@ func main() {
 		log.SetLevel(log.DebugLevel)
 	}
 	if err := ctx.Run(&cli.Globals); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
+		log.Fatal("error", "err", err)
 	}
 }

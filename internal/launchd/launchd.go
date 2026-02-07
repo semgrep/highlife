@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"text/template"
 
+	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/internal/paths"
 )
 
@@ -93,7 +94,7 @@ func Install(opts InstallOptions) error {
 		return fmt.Errorf("launchctl load: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "installed %s\n", plistPath())
+	log.Info("installed", "path", plistPath())
 	return nil
 }
 
@@ -109,6 +110,6 @@ func Uninstall() error {
 		return fmt.Errorf("remove plist: %w", err)
 	}
 
-	fmt.Fprintf(os.Stderr, "uninstalled %s\n", path)
+	log.Info("uninstalled", "path", path)
 	return nil
 }
