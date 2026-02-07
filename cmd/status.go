@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/semgrep/highlife/internal/state"
 )
@@ -32,13 +33,18 @@ func (c *StatusCmd) Run(g *Globals) error {
 	}
 
 	if !c.Quiet {
-		fmt.Printf("last sync: %s\n", st.LastSync.Format("2006-01-02 15:04:05"))
+		fmt.Printf("last sync:            %s (%s ago)\n", st.LastSync.Format("2006-01-02 15:04:05"), timeAgo(st.LastSync))
+		if st.LastSuccessfulSync.IsZero() {
+			fmt.Println("last successful sync: never")
+		} else {
+			fmt.Printf("last successful sync: %s (%s ago)\n", st.LastSuccessfulSync.Format("2006-01-02 15:04:05"), timeAgo(st.LastSuccessfulSync))
+		}
 		for _, r := range st.Results {
 			status := "ok"
 			if !r.Success {
 				status = "FAIL"
 			}
-			fmt.Printf("  %s\t%s\t%s\n", status, r.URL, r.Path)
+			fmt.Printf("  %s\t%s\t%s\t%s\n", status, r.Duration.Round(time.Millisecond), r.URL, r.Path)
 			if !r.Success && r.Error != "" {
 				fmt.Printf("    error: %s\n", r.Error)
 			}
@@ -56,4 +62,24 @@ func (c *StatusCmd) Run(g *Globals) error {
 		os.Exit(1)
 	}
 	return nil
+}
+
+func timeAgo(t time.Time) string {
+	d := time.Since(t).Truncate(time.Second)
+
+	days := int(d.Hours()) / 24
+	hours := int(d.Hours()) % 24
+	mins := int(d.Minutes()) % 60
+	secs := int(d.Seconds()) % 60
+
+	switch {
+	case days > 0:
+		return fmt.Sprintf("%dd %dh", days, hours)
+	case hours > 0:
+		return fmt.Sprintf("%dh %dm", hours, mins)
+	case mins > 0:
+		return fmt.Sprintf("%dm %ds", mins, secs)
+	default:
+		return fmt.Sprintf("%ds", secs)
+	}
 }

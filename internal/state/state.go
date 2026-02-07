@@ -11,16 +11,18 @@ import (
 )
 
 type SourceResult struct {
-	URL     string    `json:"url"`
-	Path    string    `json:"path"`
-	Success bool      `json:"success"`
-	Error   string    `json:"error,omitempty"`
-	SyncAt  time.Time `json:"sync_at"`
+	URL      string        `json:"url"`
+	Path     string        `json:"path"`
+	Success  bool          `json:"success"`
+	Error    string        `json:"error,omitempty"`
+	SyncAt   time.Time     `json:"sync_at"`
+	Duration time.Duration `json:"duration"`
 }
 
 type State struct {
-	LastSync time.Time      `json:"last_sync"`
-	Results  []SourceResult `json:"results"`
+	LastSync           time.Time      `json:"last_sync"`
+	LastSuccessfulSync time.Time      `json:"last_successful_sync,omitempty"`
+	Results            []SourceResult `json:"results"`
 }
 
 func Load() (*State, error) {

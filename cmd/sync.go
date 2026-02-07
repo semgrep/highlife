@@ -23,10 +23,10 @@ func (c *SyncCmd) Run(g *Globals) error {
 		if err != nil {
 			return fmt.Errorf("load state: %w", err)
 		}
-		if !st.LastSync.IsZero() && allSucceeded(st.Results) {
-			elapsed := time.Since(st.LastSync)
+		if !st.LastSuccessfulSync.IsZero() {
+			elapsed := time.Since(st.LastSuccessfulSync)
 			if elapsed < time.Duration(c.Delay)*time.Minute {
-				log.Info("skipping sync", "last_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
+				log.Info("skipping sync", "last_successful_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
 				return nil
 			}
 		}
@@ -61,15 +61,17 @@ func (c *SyncCmd) Run(g *Globals) error {
 	var anyFailed bool
 
 	for _, src := range cfg.Sources {
+		start := time.Now()
 		result := state.SourceResult{
 			URL:    src.URL,
 			Path:   src.Path,
-			SyncAt: time.Now(),
+			SyncAt: start,
 		}
 
 		if err, ok := repoErrors[src.URL]; ok {
 			result.Success = false
 			result.Error = state.TruncateError(err.Error(), 1024)
+			result.Duration = time.Since(start)
 			results = append(results, result)
 			anyFailed = true
 			continue
@@ -89,13 +91,25 @@ func (c *SyncCmd) Run(g *Globals) error {
 			log.Info("brew bundle ok", "url", src.URL, "path", src.Path)
 		}
 
+		result.Duration = time.Since(start)
 		results = append(results, result)
 	}
 
+	now := time.Now()
 	st := &state.State{
-		LastSync: time.Now(),
+		LastSync: now,
 		Results:  results,
 	}
+
+	// Preserve previous last successful sync; update it if everything passed.
+	prev, err := state.Load()
+	if err == nil {
+		st.LastSuccessfulSync = prev.LastSuccessfulSync
+	}
+	if !anyFailed {
+		st.LastSuccessfulSync = now
+	}
+
 	if err := state.Save(st); err != nil {
 		return fmt.Errorf("save state: %w", err)
 	}
@@ -104,13 +118,4 @@ func (c *SyncCmd) Run(g *Globals) error {
 		return fmt.Errorf("one or more sources failed to sync")
 	}
 	return nil
-}
-
-func allSucceeded(results []state.SourceResult) bool {
-	for _, r := range results {
-		if !r.Success {
-			return false
-		}
-	}
-	return len(results) > 0
 }
