@@ -14,7 +14,10 @@ import (
 	"github.com/tpetr/highlife/internal/state"
 )
 
-type SyncCmd struct{}
+type SyncCmd struct {
+	Debug  bool `help:"Print commands before running them." default:"false"`
+	DryRun bool `help:"Print commands without running them." name:"dry-run" default:"false"`
+}
 
 func (c *SyncCmd) Run() error {
 	if term.IsTerminal(int(os.Stderr.Fd())) {
@@ -43,7 +46,7 @@ func (c *SyncCmd) Run() error {
 			SyncAt: time.Now(),
 		}
 
-		repoDir, err := gitops.EnsureRepo(src.URL)
+		repoDir, err := gitops.EnsureRepo(src.URL, src.Path, c.Debug || c.DryRun)
 		if err != nil {
 			result.Success = false
 			result.Error = state.TruncateError(err.Error(), 1024)
@@ -53,8 +56,10 @@ func (c *SyncCmd) Run() error {
 			continue
 		}
 
-		output, err := brewbundle.Run(repoDir, src.Path)
-		if err != nil {
+		if err := brewbundle.Run(repoDir, src.Path, brewbundle.Options{
+			Debug:  c.Debug,
+			DryRun: c.DryRun,
+		}); err != nil {
 			result.Success = false
 			result.Error = state.TruncateError(err.Error(), 1024)
 			log.Printf("error: %s", err)
@@ -62,7 +67,6 @@ func (c *SyncCmd) Run() error {
 		} else {
 			result.Success = true
 			log.Printf("ok: %s %s", src.URL, src.Path)
-			_ = output
 		}
 
 		results = append(results, result)
