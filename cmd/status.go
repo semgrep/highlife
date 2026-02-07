@@ -9,6 +9,8 @@ import (
 	"github.com/semgrep/highlife/internal/state"
 )
 
+const timeFormat = "2006-01-02 15:04:05"
+
 type StatusCmd struct {
 	Quiet bool `optional:"" help:"Only print failures; silent if all OK."`
 }
@@ -31,11 +33,11 @@ func (c *StatusCmd) Run(g *Globals) error {
 	})
 
 	if !c.Quiet {
-		fmt.Printf("last sync:            %s (%s ago)\n", st.LastSync.Format("2006-01-02 15:04:05"), timeAgo(st.LastSync))
+		fmt.Printf("last sync:            %s (%s ago)\n", st.LastSync.Format(timeFormat), timeAgo(st.LastSync))
 		if st.LastSuccessfulSync.IsZero() {
 			fmt.Println("last successful sync: never")
 		} else {
-			fmt.Printf("last successful sync: %s (%s ago)\n", st.LastSuccessfulSync.Format("2006-01-02 15:04:05"), timeAgo(st.LastSuccessfulSync))
+			fmt.Printf("last successful sync: %s (%s ago)\n", st.LastSuccessfulSync.Format(timeFormat), timeAgo(st.LastSuccessfulSync))
 		}
 		for _, r := range st.Results {
 			status := "ok"

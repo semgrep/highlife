@@ -34,7 +34,7 @@ func StateFile() string {
 }
 
 func LogFile() string {
-	return filepath.Join(StateDir(), "highlife.log")
+	return filepath.Join(StateDir(), appName+".log")
 }
 
 func ReposDir() string {
@@ -42,7 +42,7 @@ func ReposDir() string {
 }
 
 func LockFile() string {
-	return filepath.Join(StateDir(), "highlife.lock")
+	return filepath.Join(StateDir(), appName+".lock")
 }
 
 func RepoDir(gitURL string) string {

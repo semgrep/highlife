@@ -23,7 +23,7 @@ func Run(repoDir, brewfilePath string, opts Options) error {
 	args := []string{"bundle", "--file=" + fullPath}
 
 	if opts.DryRun {
-		log.Debug("exec (dry-run)", "cmd", "brew "+fmt.Sprint(args))
+		log.Debug("dry-run, skipping", "cmd", "brew bundle", "file", fullPath)
 		return nil
 	}
 
