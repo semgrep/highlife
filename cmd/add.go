@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"slices"
 
+	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/internal/config"
 	"github.com/semgrep/highlife/internal/gitops"
 )
@@ -53,7 +54,7 @@ func (c *AddCmd) Run(g *Globals) error {
 	}
 
 	for _, p := range c.Paths {
-		fmt.Printf("added %s %s\n", c.URL, p)
+		log.Info("added", "repo", c.URL, "path", p)
 	}
 	return nil
 }

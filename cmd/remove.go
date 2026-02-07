@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/internal/config"
 	"github.com/semgrep/highlife/internal/gitops"
 )
@@ -38,7 +39,7 @@ func (c *RemoveCmd) Run(g *Globals) error {
 	}
 
 	for _, s := range removed {
-		fmt.Printf("removed %s %s\n", s.URL, s.Path)
+		log.Info("removed", "repo", s.URL, "path", s.Path)
 	}
 	return nil
 }

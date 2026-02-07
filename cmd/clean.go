@@ -20,6 +20,6 @@ func (c *CleanCmd) Run(g *Globals) error {
 		log.Debug("removed repo", "path", p)
 	}
 
-	fmt.Printf("cleaned %d cached repo(s)\n", len(removed))
+	log.Debug("cleared repo cache", "count", len(removed))
 	return nil
 }
