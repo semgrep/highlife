@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/alecthomas/kong"
-	"github.com/tpetr/highlife/cmd"
+	"github.com/semgrep/highlife/cmd"
 )
 
 type CLI struct {

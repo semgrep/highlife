@@ -1,4 +1,4 @@
-module github.com/tpetr/highlife
+module github.com/semgrep/highlife
 
 go 1.25.6
 

@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/term"
 
-	"github.com/tpetr/highlife/internal/brewbundle"
-	"github.com/tpetr/highlife/internal/config"
-	"github.com/tpetr/highlife/internal/gitops"
-	"github.com/tpetr/highlife/internal/state"
+	"github.com/semgrep/highlife/internal/brewbundle"
+	"github.com/semgrep/highlife/internal/config"
+	"github.com/semgrep/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/state"
 )
 
 type SyncCmd struct {

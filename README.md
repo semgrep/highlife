@@ -8,7 +8,7 @@ background launchd service.
 
 ## Install
 
-    go install github.com/tpetr/highlife@latest
+    go install github.com/semgrep/highlife@latest
 
 ## Quick start
 

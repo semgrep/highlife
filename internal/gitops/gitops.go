@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"path/filepath"
 
-	"github.com/tpetr/highlife/internal/paths"
+	"github.com/semgrep/highlife/internal/paths"
 )
 
 // EnsureRepo clones the repo if it doesn't exist, or pulls latest if it does.

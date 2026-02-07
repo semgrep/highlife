@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	"github.com/tpetr/highlife/internal/paths"
+	"github.com/semgrep/highlife/internal/paths"
 )
 
 const label = "com.highlife.sync"

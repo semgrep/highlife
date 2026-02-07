@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/tpetr/highlife/internal/state"
+	"github.com/semgrep/highlife/internal/state"
 )
 
 type StatusCmd struct {

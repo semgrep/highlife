@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/tpetr/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/gitops"
 )
 
 type SourceCleanCmd struct {

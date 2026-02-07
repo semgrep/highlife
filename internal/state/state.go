@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/tpetr/highlife/internal/paths"
+	"github.com/semgrep/highlife/internal/paths"
 )
 
 type SourceResult struct {

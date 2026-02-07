@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/tpetr/highlife/internal/paths"
+	"github.com/semgrep/highlife/internal/paths"
 )
 
 type Source struct {

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/tpetr/highlife/internal/config"
-	"github.com/tpetr/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/config"
+	"github.com/semgrep/highlife/internal/gitops"
 )
 
 type SourceRemoveCmd struct {

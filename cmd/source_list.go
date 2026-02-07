@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/tpetr/highlife/internal/config"
+	"github.com/semgrep/highlife/internal/config"
 )
 
 type SourceListCmd struct{}

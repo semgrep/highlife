@@ -1,6 +1,6 @@
 package cmd
 
-import "github.com/tpetr/highlife/internal/launchd"
+import "github.com/semgrep/highlife/internal/launchd"
 
 type ServiceUninstallCmd struct{}
 
