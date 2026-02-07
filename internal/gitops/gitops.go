@@ -1,13 +1,14 @@
 package gitops
 
 import (
-	"crypto/sha256"
+	"bufio"
 	"errors"
 	"fmt"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/charmbracelet/log"
 
@@ -62,19 +63,34 @@ func pull(dir string, filePaths []string) error {
 	return executil.Run("git", "-C", dir, "pull", "--no-recurse-submodules", "--ff-only")
 }
 
-// FileHash returns a hex-encoded SHA-256 of the `git ls-files -s` output for the
-// given paths within a repo directory. This captures git's own blob hashes plus
-// file modes, so any content or metadata change produces a different hash.
-func FileHash(dir string, filePaths []string) (string, error) {
+// FileHashes returns a map of file path to git blob hash for the given paths
+// within a repo directory, by parsing the output of `git ls-files -s`.
+func FileHashes(dir string, filePaths []string) (map[string]string, error) {
 	args := []string{"-C", dir, "ls-files", "-s"}
 	args = append(args, filePaths...)
 	cmd := exec.Command("git", args...)
 	log.Debug("exec", "cmd", cmd.String())
 	out, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("git ls-files -s: %w", err)
+		return nil, fmt.Errorf("git ls-files -s: %w", err)
 	}
-	return fmt.Sprintf("%x", sha256.Sum256(out)), nil
+
+	hashes := make(map[string]string)
+	scanner := bufio.NewScanner(strings.NewReader(string(out)))
+	for scanner.Scan() {
+		// Format: "<mode> <hash> <stage>\t<filename>"
+		line := scanner.Text()
+		tab := strings.IndexByte(line, '\t')
+		if tab == -1 {
+			continue
+		}
+		fields := strings.Fields(line[:tab])
+		if len(fields) < 2 {
+			continue
+		}
+		hashes[line[tab+1:]] = fields[1]
+	}
+	return hashes, nil
 }
 
 // RemoveAllRepos deletes all cached repo directories and returns the paths removed.

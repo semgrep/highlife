@@ -34,9 +34,9 @@ Set up automatic syncing in the background:
 
     highlife install
 
-Add a shell hook to your `.zshrc` or `.bashrc` to get notified of issues:
+Add a shell hook to get notified of issues:
 
-    highlife shellhook
+    echo 'highlife shellhook' >> ~/.zshrc
 
 ## Global flags
 
@@ -107,11 +107,13 @@ silently on success. The exit code is non-zero if any source failed.
 
 ### shellhook [--days-since-last-run DAYS] [--days-since-last-success DAYS]
 
-Print a warning if the last sync had issues. Designed to be called from
-`.zshrc` or `.bashrc`. Always exits zero so terminal startup is not
-affected.
+Print a warning if the last sync had issues. Designed to be called during
+shell startup. Always exits zero so terminal startup is not affected.
 
-    highlife shellhook
+Add to your shell profile:
+
+    echo 'highlife shellhook' >> ~/.zshrc   # zsh
+    echo 'highlife shellhook' >> ~/.bashrc  # bash
 
 Checks, in priority order:
 

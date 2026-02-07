@@ -82,20 +82,20 @@ func Install(opts InstallOptions) error {
 	}
 
 	// bootout any previously loaded version (ignore errors if not loaded).
-	_ = executil.Run("launchctl", "bootout", domain())
+	_ = executil.RunQuiet("launchctl", "bootout", domain())
 
 	if err := executil.Run("launchctl", "bootstrap", domainTarget(), plistPath()); err != nil {
 		return fmt.Errorf("launchctl bootstrap: %w", err)
 	}
 
-	log.Info("installed", "label", label, "path", plistPath())
+	log.Info("installed", "label", label, "path", plistPath(), "interval", fmt.Sprintf("%dm", opts.IntervalMinutes), "brew_min_interval", fmt.Sprintf("%dm", opts.BrewMinIntervalMins))
 	return nil
 }
 
 func Uninstall() error {
 	path := plistPath()
 
-	_ = executil.Run("launchctl", "bootout", domain()) // ignore error if not loaded
+	_ = executil.RunQuiet("launchctl", "bootout", domain()) // ignore error if not loaded
 
 	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove plist: %w", err)

@@ -24,3 +24,12 @@ func RunContext(ctx context.Context, name string, args ...string) error {
 func Run(name string, args ...string) error {
 	return RunContext(context.Background(), name, args...)
 }
+
+// RunQuiet executes a command, logging the command string at debug level
+// but discarding all output.
+func RunQuiet(name string, args ...string) error {
+	// nosemgrep: go.lang.security.audit.dangerous-exec-command.dangerous-exec-command
+	cmd := exec.Command(name, args...)
+	log.Debug("exec", "cmd", cmd.String())
+	return cmd.Run()
+}

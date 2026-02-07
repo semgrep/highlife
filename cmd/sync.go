@@ -66,7 +66,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 	// Clone/pull each unique URL once with all its paths for sparse checkout.
 	repoDirs := map[string]string{}
 	repoErrors := map[string]error{}
-	repoHashes := make(map[string]string)
+	fileHashes := make(map[string]string)
 	for _, url := range cfg.SourceURLs() {
 		filePaths := cfg.PathsForURL(url)
 		log.Info("fetching repo", "url", url, "paths", len(filePaths))
@@ -78,11 +78,13 @@ func (c *SyncCmd) Run(g *Globals) error {
 		}
 		repoDirs[url] = dir
 
-		hash, err := gitops.FileHash(dir, filePaths)
+		hashes, err := gitops.FileHashes(dir, filePaths)
 		if err != nil {
 			log.Warn("file hash failed, will not skip", "url", url, "err", err)
 		} else {
-			repoHashes[url] = hash
+			for path, hash := range hashes {
+				fileHashes[url+":"+path] = hash
+			}
 		}
 	}
 
@@ -91,6 +93,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 
 	for _, src := range cfg.Sources {
 		start := time.Now()
+		sourceKey := src.URL + ":" + src.Path
 		result := state.SourceResult{
 			URL:    src.URL,
 			Path:   src.Path,
@@ -106,8 +109,8 @@ func (c *SyncCmd) Run(g *Globals) error {
 			continue
 		}
 
-		// Skip brew bundle if delay is active and the repo's files haven't changed.
-		if hash, ok := repoHashes[src.URL]; ok && delayActive && hash == prev.FileHashes[src.URL] {
+		// Skip brew bundle if delay is active and this file hasn't changed.
+		if hash, ok := fileHashes[sourceKey]; ok && delayActive && hash == prev.FileHashes[sourceKey] {
 			log.Info("skipping brew bundle (unchanged)", "url", src.URL, "path", src.Path)
 			result.Success = true
 			result.Duration = time.Since(start)
@@ -138,7 +141,7 @@ func (c *SyncCmd) Run(g *Globals) error {
 		LastSync:           now,
 		LastSuccessfulSync: prev.LastSuccessfulSync,
 		Results:            results,
-		FileHashes:         repoHashes,
+		FileHashes:         fileHashes,
 	}
 	if !anyFailed {
 		st.LastSuccessfulSync = now
