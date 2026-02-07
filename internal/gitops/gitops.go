@@ -5,11 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 
-	"github.com/charmbracelet/log"
-
+	"github.com/semgrep/highlife/internal/executil"
 	"github.com/semgrep/highlife/internal/paths"
 )
 
@@ -32,13 +30,6 @@ func EnsureRepo(url string, filePaths []string) (string, error) {
 	return dir, nil
 }
 
-func runCmd(cmd *exec.Cmd) error {
-	log.Debug("exec", "cmd", cmd.String())
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
-}
-
 func sparseCheckoutArgs(dir string, filePaths []string) []string {
 	args := []string{"-C", dir, "sparse-checkout", "set", "--no-cone"}
 	for _, p := range filePaths {
@@ -48,23 +39,23 @@ func sparseCheckoutArgs(dir string, filePaths []string) []string {
 }
 
 func clone(url, dir string, filePaths []string) error {
-	if err := runCmd(exec.Command("git", "clone", "--depth=1", "--filter=blob:none", "--no-checkout", "--no-recurse-submodules", url, dir)); err != nil {
+	if err := executil.Run("git", "clone", "--depth=1", "--filter=blob:none", "--no-checkout", "--no-recurse-submodules", url, dir); err != nil {
 		return err
 	}
 
-	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, filePaths)...)); err != nil {
+	if err := executil.Run("git", sparseCheckoutArgs(dir, filePaths)...); err != nil {
 		return err
 	}
 
-	return runCmd(exec.Command("git", "-C", dir, "checkout", "--no-recurse-submodules"))
+	return executil.Run("git", "-C", dir, "checkout", "--no-recurse-submodules")
 }
 
 func pull(dir string, filePaths []string) error {
-	if err := runCmd(exec.Command("git", sparseCheckoutArgs(dir, filePaths)...)); err != nil {
+	if err := executil.Run("git", sparseCheckoutArgs(dir, filePaths)...); err != nil {
 		return err
 	}
 
-	return runCmd(exec.Command("git", "-C", dir, "pull", "--no-recurse-submodules", "--ff-only"))
+	return executil.Run("git", "-C", dir, "pull", "--no-recurse-submodules", "--ff-only")
 }
 
 // RemoveAllRepos deletes all cached repo directories and returns the paths removed.

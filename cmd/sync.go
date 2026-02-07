@@ -41,12 +41,14 @@ func (c *SyncCmd) Run(g *Globals) error {
 	}
 
 	if !g.SkipConnectivityCheck {
+		log.Debug("connectivity check", "addr", "1.1.1.1:443", "timeout", "2s")
 		conn, err := net.DialTimeout("tcp", "1.1.1.1:443", 2*time.Second)
 		if err != nil {
 			log.Info("no internet connectivity, skipping sync")
 			return nil
 		}
 		_ = conn.Close()
+		log.Debug("connectivity check passed")
 	}
 
 	cfg, err := config.Load()

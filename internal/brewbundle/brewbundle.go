@@ -3,12 +3,12 @@ package brewbundle
 import (
 	"context"
 	"fmt"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"time"
 
 	"github.com/charmbracelet/log"
+
+	"github.com/semgrep/highlife/internal/executil"
 )
 
 // Options controls how Run executes the brew bundle command.
@@ -20,25 +20,21 @@ type Options struct {
 // Run executes "brew bundle" with the given Brewfile path inside repoDir.
 func Run(repoDir, brewfilePath string, opts Options) error {
 	fullPath := filepath.Join(repoDir, brewfilePath)
-
-	var cmd *exec.Cmd
-	if opts.Timeout > 0 {
-		ctx, cancel := context.WithTimeout(context.Background(), opts.Timeout)
-		defer cancel()
-		cmd = exec.CommandContext(ctx, "brew", "bundle", "--file="+fullPath)
-	} else {
-		cmd = exec.Command("brew", "bundle", "--file="+fullPath)
-	}
-
-	log.Debug("exec", "cmd", cmd.String())
+	args := []string{"bundle", "--file=" + fullPath}
 
 	if opts.DryRun {
+		log.Debug("exec (dry-run)", "cmd", "brew "+fmt.Sprint(args))
 		return nil
 	}
 
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	ctx := context.Background()
+	var cancel context.CancelFunc
+	if opts.Timeout > 0 {
+		ctx, cancel = context.WithTimeout(ctx, opts.Timeout)
+		defer cancel()
+	}
+
+	if err := executil.RunContext(ctx, "brew", args...); err != nil {
 		return fmt.Errorf("brew bundle: %w", err)
 	}
 	return nil

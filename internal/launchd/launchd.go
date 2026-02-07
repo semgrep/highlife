@@ -6,10 +6,10 @@ import (
 	"html/template"
 	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/charmbracelet/log"
+	"github.com/semgrep/highlife/internal/executil"
 	"github.com/semgrep/highlife/internal/paths"
 )
 
@@ -95,10 +95,7 @@ func Install(opts InstallOptions) error {
 		return err
 	}
 
-	cmd := exec.Command("launchctl", "load", plistPath())
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
+	if err := executil.Run("launchctl", "load", plistPath()); err != nil {
 		return fmt.Errorf("launchctl load: %w", err)
 	}
 
@@ -109,10 +106,7 @@ func Install(opts InstallOptions) error {
 func Uninstall() error {
 	path := plistPath()
 
-	cmd := exec.Command("launchctl", "unload", path)
-	cmd.Stdout = os.Stderr
-	cmd.Stderr = os.Stderr
-	_ = cmd.Run() // ignore error if not loaded
+	_ = executil.Run("launchctl", "unload", path) // ignore error if not loaded
 
 	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove plist: %w", err)
