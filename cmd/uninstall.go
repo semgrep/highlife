@@ -2,8 +2,8 @@ package cmd
 
 import "github.com/semgrep/highlife/internal/launchd"
 
-type ServiceUninstallCmd struct{}
+type UninstallCmd struct{}
 
-func (c *ServiceUninstallCmd) Run(g *Globals) error {
+func (c *UninstallCmd) Run(g *Globals) error {
 	return launchd.Uninstall()
 }

@@ -7,12 +7,12 @@ import (
 	"github.com/semgrep/highlife/internal/gitops"
 )
 
-type SourceRemoveCmd struct {
+type RemoveCmd struct {
 	URL  string `arg:"" help:"Git repository URL to remove."`
 	Path string `arg:"" optional:"" help:"Path to Brewfile within the repo. If omitted, all sources for the URL are removed."`
 }
 
-func (c *SourceRemoveCmd) Run(g *Globals) error {
+func (c *RemoveCmd) Run(g *Globals) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)

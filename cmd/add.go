@@ -10,12 +10,12 @@ import (
 	"github.com/semgrep/highlife/internal/gitops"
 )
 
-type SourceAddCmd struct {
+type AddCmd struct {
 	URL   string   `arg:"" help:"Git repository URL."`
 	Paths []string `arg:"" optional:"" default:"Brewfile" help:"Paths to Brewfiles within the repo."`
 }
 
-func (c *SourceAddCmd) Run(g *Globals) error {
+func (c *AddCmd) Run(g *Globals) error {
 	cfg, err := config.Load()
 	if err != nil {
 		return fmt.Errorf("load config: %w", err)

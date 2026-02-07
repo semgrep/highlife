@@ -8,9 +8,9 @@ import (
 	"github.com/semgrep/highlife/internal/gitops"
 )
 
-type SourceCleanCmd struct{}
+type CleanCmd struct{}
 
-func (c *SourceCleanCmd) Run(g *Globals) error {
+func (c *CleanCmd) Run(g *Globals) error {
 	removed, err := gitops.RemoveAllRepos()
 	if err != nil {
 		return fmt.Errorf("clean repos: %w", err)
