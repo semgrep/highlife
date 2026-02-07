@@ -1,4 +1,4 @@
-# highlife
+# 🍾 highlife
 
 Keep Homebrew packages installed and up-to-date from remote Brewfiles.
 
