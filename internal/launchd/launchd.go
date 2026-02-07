@@ -87,7 +87,7 @@ func Install(opts InstallOptions) error {
 		return fmt.Errorf("launchctl bootstrap: %w", err)
 	}
 
-	log.Info("installed", "path", plistPath())
+	log.Info("installed", "label", label, "path", plistPath())
 	return nil
 }
 
@@ -100,6 +100,6 @@ func Uninstall() error {
 		return fmt.Errorf("remove plist: %w", err)
 	}
 
-	log.Info("uninstalled", "path", path)
+	log.Info("uninstalled", "label", label, "path", path)
 	return nil
 }
