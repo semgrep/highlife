@@ -74,6 +74,20 @@ func (c *Config) RemoveByURL(url string) []Source {
 	return removed
 }
 
+func (c *Config) RemoveByURLAndPath(url, path string) []Source {
+	var removed []Source
+	var kept []Source
+	for _, s := range c.Sources {
+		if s.URL == url && s.Path == path {
+			removed = append(removed, s)
+		} else {
+			kept = append(kept, s)
+		}
+	}
+	c.Sources = kept
+	return removed
+}
+
 func (c *Config) SourceURLs() []string {
 	seen := map[string]bool{}
 	var urls []string
@@ -84,6 +98,17 @@ func (c *Config) SourceURLs() []string {
 		}
 	}
 	return urls
+}
+
+// PathsForURL returns all paths configured for the given URL.
+func (c *Config) PathsForURL(url string) []string {
+	var paths []string
+	for _, s := range c.Sources {
+		if s.URL == url {
+			paths = append(paths, s.Path)
+		}
+	}
+	return paths
 }
 
 // URLStillReferenced returns true if any remaining source uses this URL.

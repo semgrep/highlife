@@ -11,7 +11,7 @@ type StatusCmd struct {
 	Quiet bool `optional:"" help:"Only print failures; silent if all OK."`
 }
 
-func (c *StatusCmd) Run() error {
+func (c *StatusCmd) Run(g *Globals) error {
 	st, err := state.Load()
 	if err != nil {
 		return fmt.Errorf("load state: %w", err)
