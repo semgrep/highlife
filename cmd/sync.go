@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"net"
 	"time"
 
 	"github.com/charmbracelet/log"
@@ -37,6 +38,15 @@ func (c *SyncCmd) Run(g *Globals) error {
 			log.Info("skipping sync", "last_successful_sync", elapsed.Round(time.Second), "delay", fmt.Sprintf("%dm", c.Delay))
 			return nil
 		}
+	}
+
+	if !g.SkipConnectivityCheck {
+		conn, err := net.DialTimeout("tcp", "1.1.1.1:443", 2*time.Second)
+		if err != nil {
+			log.Info("no internet connectivity, skipping sync")
+			return nil
+		}
+		_ = conn.Close()
 	}
 
 	cfg, err := config.Load()

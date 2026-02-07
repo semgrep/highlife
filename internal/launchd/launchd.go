@@ -3,11 +3,11 @@ package launchd
 import (
 	"errors"
 	"fmt"
+	"html/template"
 	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"text/template"
 
 	"github.com/charmbracelet/log"
 	"github.com/semgrep/highlife/internal/paths"
@@ -31,7 +31,7 @@ var plistTemplate = template.Must(template.New("plist").Parse(`<?xml version="1.
     <key>StartInterval</key>
     <integer>{{ .Interval }}</integer>
     <key>RunAtLoad</key>
-    <true/>
+    <{{ .RunAtLoad }}/>
     <key>StandardOutPath</key>
     <string>{{ .LogFile }}</string>
     <key>StandardErrorPath</key>
@@ -51,11 +51,13 @@ type plistData struct {
 	LogFile    string
 	Interval   int
 	Delay      int
+	RunAtLoad  string
 }
 
 type InstallOptions struct {
 	IntervalMinutes int
 	DelayMinutes    int
+	RunAtLoad       bool
 }
 
 func Install(opts InstallOptions) error {
@@ -64,12 +66,18 @@ func Install(opts InstallOptions) error {
 		return fmt.Errorf("resolve executable path: %w", err)
 	}
 
+	runAtLoad := "false"
+	if opts.RunAtLoad {
+		runAtLoad = "true"
+	}
+
 	data := plistData{
 		Label:      label,
 		Executable: exe,
 		LogFile:    paths.LogFile(),
 		Interval:   opts.IntervalMinutes * 60,
 		Delay:      opts.DelayMinutes,
+		RunAtLoad:  runAtLoad,
 	}
 
 	dir := filepath.Dir(plistPath())
