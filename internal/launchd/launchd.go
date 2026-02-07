@@ -3,55 +3,42 @@ package launchd
 import (
 	"errors"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"os"
 	"path/filepath"
 
 	"github.com/charmbracelet/log"
+	"howett.net/plist"
+
 	"github.com/semgrep/highlife/internal/executil"
 	"github.com/semgrep/highlife/internal/paths"
 )
 
-const label = "com.semgre.highlife.sync"
+const label = "com.semgrep.highlife.sync"
+const filename = label + ".plist"
 
-var plistTemplate = template.Must(template.New("plist").Parse(`<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>Label</key>
-    <string>{{ .Label }}</string>
-    <key>ProgramArguments</key>
-    <array>
-        <string>{{ .Executable }}</string>
-        <string>sync</string>
-        <string>--brew-min-interval</string>
-        <string>{{ .BrewMinInterval }}</string>
-    </array>
-    <key>StartInterval</key>
-    <integer>{{ .Interval }}</integer>
-    <key>RunAtLoad</key>
-    <{{ .RunAtLoad }}/>
-    <key>StandardOutPath</key>
-    <string>{{ .LogFile }}</string>
-    <key>StandardErrorPath</key>
-    <string>{{ .LogFile }}</string>
-</dict>
-</plist>
-`))
+type launchdPlist struct {
+	Label             string   `plist:"Label"`
+	ProgramArguments  []string `plist:"ProgramArguments"`
+	StartInterval     int      `plist:"StartInterval"`
+	RunAtLoad         bool     `plist:"RunAtLoad"`
+	StandardOutPath   string   `plist:"StandardOutPath"`
+	StandardErrorPath string   `plist:"StandardErrorPath"`
+}
+
+// domainTarget returns the launchd domain target for the current user (e.g. "gui/501").
+func domainTarget() string {
+	return fmt.Sprintf("gui/%d", os.Getuid())
+}
+
+// domain returns the fully qualified launchd service domain (e.g. "gui/501/com.semgrep.highlife.sync").
+func domain() string {
+	return domainTarget() + "/" + label
+}
 
 func plistPath() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, "Library", "LaunchAgents", label+".plist")
-}
-
-type plistData struct {
-	Label           string
-	Executable      string
-	LogFile         string
-	Interval        int
-	BrewMinInterval int
-	RunAtLoad       string
+	return filepath.Join(home, "Library", "LaunchAgents", filename)
 }
 
 type InstallOptions struct {
@@ -66,18 +53,16 @@ func Install(opts InstallOptions) error {
 		return fmt.Errorf("resolve executable path: %w", err)
 	}
 
-	runAtLoad := "false"
-	if opts.RunAtLoad {
-		runAtLoad = "true"
-	}
-
-	data := plistData{
-		Label:      label,
-		Executable: exe,
-		LogFile:    paths.LogFile(),
-		Interval:   opts.IntervalMinutes * 60,
-		BrewMinInterval: opts.BrewMinIntervalMins,
-		RunAtLoad:  runAtLoad,
+	data := launchdPlist{
+		Label: label,
+		ProgramArguments: []string{
+			exe, "sync",
+			"--brew-min-interval", fmt.Sprintf("%d", opts.BrewMinIntervalMins),
+		},
+		StartInterval:     opts.IntervalMinutes * 60,
+		RunAtLoad:         opts.RunAtLoad,
+		StandardOutPath:   paths.LogFile(),
+		StandardErrorPath: paths.LogFile(),
 	}
 
 	dir := filepath.Dir(plistPath())
@@ -91,12 +76,15 @@ func Install(opts InstallOptions) error {
 	}
 	defer f.Close()
 
-	if err := plistTemplate.Execute(f, data); err != nil {
+	if err := plist.NewEncoder(f).Encode(data); err != nil {
 		return err
 	}
 
-	if err := executil.Run("launchctl", "load", plistPath()); err != nil {
-		return fmt.Errorf("launchctl load: %w", err)
+	// bootout any previously loaded version (ignore errors if not loaded).
+	_ = executil.Run("launchctl", "bootout", domain())
+
+	if err := executil.Run("launchctl", "bootstrap", domainTarget(), plistPath()); err != nil {
+		return fmt.Errorf("launchctl bootstrap: %w", err)
 	}
 
 	log.Info("installed", "path", plistPath())
@@ -106,7 +94,7 @@ func Install(opts InstallOptions) error {
 func Uninstall() error {
 	path := plistPath()
 
-	_ = executil.Run("launchctl", "unload", path) // ignore error if not loaded
+	_ = executil.Run("launchctl", "bootout", domain()) // ignore error if not loaded
 
 	if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 		return fmt.Errorf("remove plist: %w", err)
