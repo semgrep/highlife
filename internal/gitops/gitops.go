@@ -93,6 +93,28 @@ func FileHashes(dir string, filePaths []string) (map[string]string, error) {
 	return hashes, nil
 }
 
+// RepoRoot returns the root directory of the git repository containing path.
+func RepoRoot(path string) (string, error) {
+	cmd := exec.Command("git", "-C", path, "rev-parse", "--show-toplevel")
+	log.Debug("exec", "cmd", cmd.String())
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("not a git repository: %s", path)
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
+// RemoteURL returns the origin remote URL for the git repository at repoDir.
+func RemoteURL(repoDir string) (string, error) {
+	cmd := exec.Command("git", "-C", repoDir, "remote", "get-url", "origin")
+	log.Debug("exec", "cmd", cmd.String())
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("no origin remote in %s", repoDir)
+	}
+	return strings.TrimSpace(string(out)), nil
+}
+
 // RemoveAllRepos deletes all cached repo directories and returns the paths removed.
 func RemoveAllRepos() ([]string, error) {
 	dir := paths.ReposDir()

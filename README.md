@@ -56,6 +56,19 @@ Register one or more Brewfile sources. PATH defaults to `Brewfile`.
 Multiple sources can point to the same repository with different paths.
 The repository is cloned eagerly to verify the files exist.
 
+### track [PATH...]
+
+Register Brewfiles by local filesystem path. The file must live inside a
+Git repository; `track` resolves the repo's origin URL and the file's
+relative path automatically. PATH defaults to `Brewfile` in the current
+directory. If a path is a directory, `track` looks for a file named
+`Brewfile` inside it.
+
+    cd ~/src/dotfiles && highlife track
+    highlife track ~/src/dotfiles/Brewfile
+    highlife track ~/src/dotfiles/packages/Brewfile
+    highlife track ~/src/dotfiles              # equivalent to ~/src/dotfiles/Brewfile
+
 ### remove URL [PATH]
 
 Remove sources for the given URL. If PATH is specified, only that source is
@@ -123,12 +136,15 @@ Checks, in priority order:
 
 Warnings are colorized when stdout is a terminal, plain text otherwise.
 
-### install [--interval MINUTES] [--brew-min-interval MINUTES]
+### install [--interval MINUTES] [--brew-min-interval MINUTES] [--skip-sync]
 
 Install a launchd user agent that runs `highlife sync` periodically.
+Before writing the plist, an initial sync is run to catch configuration
+errors early. Use `--skip-sync` to bypass the initial sync.
 
     highlife install
     highlife install --interval 60 --brew-min-interval 1440
+    highlife install --skip-sync
 
 `--interval` controls how often launchd triggers a sync (default: 30
 minutes). `--brew-min-interval` is passed to `sync --brew-min-interval`
@@ -158,6 +174,6 @@ Paths respect `XDG_CONFIG_HOME` and `XDG_STATE_HOME` if set.
 
 ## Platform support
 
-`sync`, `add`, `remove`, `list`, `status`, `clean`, and `shellhook` work on
-any platform with Git and Homebrew. The `install` and `uninstall` commands
-are macOS-only (launchd).
+`sync`, `add`, `track`, `remove`, `list`, `status`, `clean`, and `shellhook`
+work on any platform with Git and Homebrew. The `install` and `uninstall`
+commands are macOS-only (launchd).

@@ -10,6 +10,7 @@ type CLI struct {
 	cmd.Globals
 
 	Add       cmd.AddCmd       `cmd:"" help:"Add a Brewfile source."`
+	Track     cmd.TrackCmd     `cmd:"" help:"Track Brewfiles in the current git repo."`
 	Remove    cmd.RemoveCmd    `cmd:"" help:"Remove a Brewfile source."`
 	List      cmd.ListCmd      `cmd:"" help:"List Brewfile sources."`
 	Clean     cmd.CleanCmd     `cmd:"" help:"Remove all cached repo clones."`
