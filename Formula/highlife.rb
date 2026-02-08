@@ -5,21 +5,21 @@
 class Highlife < Formula
   desc "Keep Homebrew packages installed and up-to-date from remote Brewfiles."
   homepage "https://github.com/semgrep/highlife"
-  version "0.9.3"
+  version "0.9.4"
   license "Apache-2.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.3/highlife_0.9.3_darwin_amd64.tar.gz"
-      sha256 "6f1fed919ddc003dbc26548da9423a0326628b11a245a1968da584ebf8d04e21"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.4/highlife_0.9.4_darwin_amd64.tar.gz"
+      sha256 "2a4b62ec4844889a4e4e4eec9cfd320a8275f9f4d87ea72ef3bdf62d3b7b82a8"
 
       def install
         bin.install "highlife"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.3/highlife_0.9.3_darwin_arm64.tar.gz"
-      sha256 "3ba6a8b40eb4c1c5472832ebe5b483bb2a768c1bda5764f51db5e5d4f4642365"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.4/highlife_0.9.4_darwin_arm64.tar.gz"
+      sha256 "416bad81ce41dd56d899d10f6dc056b074ccf722b553471e2a04c163251e56ae"
 
       def install
         bin.install "highlife"
@@ -29,15 +29,15 @@ class Highlife < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.3/highlife_0.9.3_linux_amd64.tar.gz"
-      sha256 "eca1c1fa264c667818f276dd46c6b95900b978559da6c7969d097e1e2d26032c"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.4/highlife_0.9.4_linux_amd64.tar.gz"
+      sha256 "e1598a0672dbd663a23cc7cb36979521f58aac0320f64728b8a79fec2248f70f"
       def install
         bin.install "highlife"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.3/highlife_0.9.3_linux_arm64.tar.gz"
-      sha256 "92ba6bb77987d38e0b70711c802607f6e65f8559ce812e0deb55f8be2389316a"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.4/highlife_0.9.4_linux_arm64.tar.gz"
+      sha256 "2b4fba82c5fa55abb06cb53798c6d88222bae271adf1d68aeff1c5b427c11834"
       def install
         bin.install "highlife"
       end
