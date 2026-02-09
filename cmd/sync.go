@@ -11,6 +11,7 @@ import (
 	"github.com/semgrep/highlife/internal/config"
 	"github.com/semgrep/highlife/internal/flock"
 	"github.com/semgrep/highlife/internal/gitops"
+	"github.com/semgrep/highlife/internal/launchd"
 	"github.com/semgrep/highlife/internal/paths"
 	"github.com/semgrep/highlife/internal/state"
 )
@@ -28,6 +29,9 @@ type SyncCmd struct {
 }
 
 func (c *SyncCmd) Run(g *Globals) error {
+	log.Debug("sync starting")
+	launchd.RotateLogs()
+
 	lf, err := flock.Acquire(paths.LockFile())
 	if err != nil {
 		return err

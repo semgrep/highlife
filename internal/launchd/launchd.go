@@ -56,7 +56,7 @@ func Install(opts InstallOptions) error {
 	data := launchdPlist{
 		Label: label,
 		ProgramArguments: []string{
-			exe, "sync",
+			exe, "--debug", "sync",
 			"--connectivity-check",
 			"--brew-min-interval", fmt.Sprintf("%d", opts.BrewMinIntervalMins),
 		},
@@ -64,6 +64,10 @@ func Install(opts InstallOptions) error {
 		RunAtLoad:         opts.RunAtLoad,
 		StandardOutPath:   paths.LogFile(),
 		StandardErrorPath: paths.LogFile(),
+	}
+
+	if err := writeNewsyslogConf(); err != nil {
+		return fmt.Errorf("write newsyslog conf: %w", err)
 	}
 
 	dir := filepath.Dir(plistPath())
@@ -90,6 +94,26 @@ func Install(opts InstallOptions) error {
 
 	log.Info("installed", "label", label, "path", plistPath(), "interval", fmt.Sprintf("%dm", opts.IntervalMinutes), "brew_min_interval", fmt.Sprintf("%dm", opts.BrewMinIntervalMins))
 	return nil
+}
+
+func writeNewsyslogConf() error {
+	conf := fmt.Sprintf("# logfilename\towner:group\tmode\tcount\tsize\twhen\tflags\n%s\t:\t644\t5\t1024\t*\tNZ\n", paths.LogFile())
+
+	dir := filepath.Dir(paths.NewsyslogConf())
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		return err
+	}
+
+	return os.WriteFile(paths.NewsyslogConf(), []byte(conf), 0o644)
+}
+
+// RotateLogs runs newsyslog to rotate the log file if needed.
+func RotateLogs() {
+	conf := paths.NewsyslogConf()
+	if _, err := os.Stat(conf); err != nil {
+		return
+	}
+	_ = executil.RunQuiet("/usr/sbin/newsyslog", "-f", conf)
 }
 
 func Uninstall() error {

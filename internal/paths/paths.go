@@ -37,6 +37,10 @@ func LogFile() string {
 	return filepath.Join(StateDir(), appName+".log")
 }
 
+func NewsyslogConf() string {
+	return filepath.Join(StateDir(), "newsyslog.conf")
+}
+
 func ReposDir() string {
 	return filepath.Join(StateDir(), "repos")
 }
