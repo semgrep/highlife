@@ -15,6 +15,7 @@ type SourceResult struct {
 	Path     string        `json:"path"`
 	Success  bool          `json:"success"`
 	Error    string        `json:"error,omitempty"`
+	Output   string        `json:"output,omitempty"`
 	SyncAt   time.Time     `json:"sync_at"`
 	Duration time.Duration `json:"duration"`
 }
