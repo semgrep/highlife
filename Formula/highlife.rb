@@ -5,23 +5,23 @@
 class Highlife < Formula
   desc "Keep Homebrew packages installed and up-to-date from remote Brewfiles."
   homepage "https://github.com/semgrep/highlife"
-  version "0.9.5"
+  version "0.9.7"
   license "Apache-2.0"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.5/highlife_0.9.5_darwin_amd64.tar.gz"
-      sha256 "73d390b630662950387acb5bdf2894a260c724dbcac5dab2a54db495469da963"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.7/highlife_0.9.7_darwin_amd64.tar.gz"
+      sha256 "e8fa81df1cedb6db44c73e1d2d4967f270f84ae5e24dc3d7bac1c7a5a2f30a9f"
 
-      def install
+      define_method(:install) do
         bin.install "highlife"
       end
     end
     if Hardware::CPU.arm?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.5/highlife_0.9.5_darwin_arm64.tar.gz"
-      sha256 "dd6ea171fdb4c61a0ed2137c5d1cc4a9147961b3bb3f1b73ef6f75255a886920"
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.7/highlife_0.9.7_darwin_arm64.tar.gz"
+      sha256 "11f5749a88babc3fea96ae7e3d16fc3e49daaa4e18c4eed1c681a2e180bd7746"
 
-      def install
+      define_method(:install) do
         bin.install "highlife"
       end
     end
@@ -29,16 +29,16 @@ class Highlife < Formula
 
   on_linux do
     if Hardware::CPU.intel? && Hardware::CPU.is_64_bit?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.5/highlife_0.9.5_linux_amd64.tar.gz"
-      sha256 "6d1efdf5a501dfcfbfe004c4632ca38d72b6c5502d463ee830ba429389c936e8"
-      def install
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.7/highlife_0.9.7_linux_amd64.tar.gz"
+      sha256 "a114b33b6d6f5c7abd28d3f6933742f6d8f031e2869b32c0f96db3272328935a"
+      define_method(:install) do
         bin.install "highlife"
       end
     end
     if Hardware::CPU.arm? && Hardware::CPU.is_64_bit?
-      url "https://github.com/semgrep/highlife/releases/download/v0.9.5/highlife_0.9.5_linux_arm64.tar.gz"
-      sha256 "6211b2da318457cadc771950bca94d568bd79d0b181d3849c5dc7b4b3aca85af"
-      def install
+      url "https://github.com/semgrep/highlife/releases/download/v0.9.7/highlife_0.9.7_linux_arm64.tar.gz"
+      sha256 "ad464b8237ba90854e792c2e93f8be1adcbc77b90eee29915cd82340437c1785"
+      define_method(:install) do
         bin.install "highlife"
       end
     end
