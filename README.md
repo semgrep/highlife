@@ -161,3 +161,4 @@ Paths respect `XDG_CONFIG_HOME` and `XDG_STATE_HOME` if set.
 `sync`, `add`, `remove`, `list`, `status`, `clean`, and `shellhook` work on
 any platform with Git and Homebrew. The `install` and `uninstall` commands
 are macOS-only (launchd).
+
