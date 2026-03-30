@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"os"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/semgrep/highlife/internal/state"
 )
 
+const defaultOutputLines = 100
+
 const timeFormat = "2006-01-02 15:04:05"
 
 type StatusCmd struct {
 	Quiet bool `optional:"" help:"Only print failures; silent if all OK."`
+	Full  bool `optional:"" help:"Show full brew output instead of last 100 lines."`
 }
 
 func (c *StatusCmd) Run(g *Globals) error {
@@ -48,12 +52,18 @@ func (c *StatusCmd) Run(g *Globals) error {
 			if !r.Success && r.Error != "" {
 				fmt.Printf("    error: %s\n", r.Error)
 			}
+			if !r.Success && r.Output != "" {
+				printOutput(r.Output, c.Full)
+			}
 		}
 	} else {
 		// Quiet mode: only print failures.
 		for _, r := range st.Results {
 			if !r.Success {
 				fmt.Printf("FAIL\t%s\t%s\t%s\n", r.URL, r.Path, r.Error)
+				if r.Output != "" {
+					printOutput(r.Output, c.Full)
+				}
 			}
 		}
 	}
@@ -62,6 +72,18 @@ func (c *StatusCmd) Run(g *Globals) error {
 		os.Exit(1)
 	}
 	return nil
+}
+
+func printOutput(output string, full bool) {
+	lines := strings.Split(strings.TrimRight(output, "\n"), "\n")
+	if !full && len(lines) > defaultOutputLines {
+		fmt.Printf("    ... (%d lines omitted, use --full to show all)\n", len(lines)-defaultOutputLines)
+		lines = lines[len(lines)-defaultOutputLines:]
+	}
+	fmt.Println("    output:")
+	for _, line := range lines {
+		fmt.Printf("    | %s\n", line)
+	}
 }
 
 func timeAgo(t time.Time) string {

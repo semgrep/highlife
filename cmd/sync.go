@@ -20,6 +20,7 @@ const (
 	connectivityAddr    = "1.1.1.1:443"
 	connectivityTimeout = 2 * time.Second
 	maxErrorLength      = 1024
+	maxOutputLength     = 128 * 1024
 )
 
 type SyncCmd struct {
@@ -123,10 +124,12 @@ func (c *SyncCmd) Run(g *Globals) error {
 		}
 
 		log.Info("running brew bundle", "url", src.URL, "path", src.Path)
-		if err := brewbundle.Run(repoDirs[src.URL], src.Path, brewbundle.Options{
+		output, err := brewbundle.Run(repoDirs[src.URL], src.Path, brewbundle.Options{
 			DryRun:  c.DryRun,
 			Timeout: g.BrewTimeout,
-		}); err != nil {
+		})
+		result.Output = state.TruncateError(output, maxOutputLength)
+		if err != nil {
 			result.Success = false
 			result.Error = state.TruncateError(err.Error(), maxErrorLength)
 			log.Error("brew bundle failed", "url", src.URL, "path", src.Path, "err", err)
